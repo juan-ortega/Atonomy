@@ -9,6 +9,7 @@
 #include <vector>
 #include <fstream>
 
+
 int n = 1; //sts number of decks
 int numofcards = n * 52; //total number of cards
 #define jrand rand() % numofcards; //creates random function with appropriate range
@@ -22,7 +23,7 @@ public:
 };
 
 void shuffle(vector<Deck>* pstack) {
-	for (int i = 0; i < 52 * 52 * n; i++) {
+	for (int i = 0; i < 52 * numofcards; i++) {
 		int card1 = jrand;
 		int card2 = jrand;
 		Deck cardtemp;
@@ -34,6 +35,58 @@ void shuffle(vector<Deck>* pstack) {
 		cardtemp.suit = pstack->at(card1).suit;
 		pstack->at(card1).suit = pstack->at(card2).suit;
 		pstack->at(card2).suit = cardtemp.suit;
+
+		//Testing Test A function : this switches a rank between two random cards, effectively deleting 
+		//one card as it creates a copy of another random card.
+		/*int p1 = jrand;
+		int p2 = jrand;
+		pstack->at(p1).rank = pstack->at(p2).rank;*/
+
+		//Testing Test B function : this switches the first card with a random card reducing the number 
+		//of that card by 1. However there is a chance that the random card is the same as the first card,
+		//invalidating this test.
+		/*int p1 = jrand;
+		pstack->at(0).rank = pstack->at(p1).rank;
+		pstack->at(0).suit = pstack->at(p1).suit;*/
+	}
+}
+
+void TestA(vector<Deck>* pstack) { //goes card by cards and compares them to all other cards
+	for (int i = 0; i < numofcards; i++) { //card being compared
+		for (int j = 0; j < numofcards; j++) { //all cards compared to the mentioned card
+			if (i == j) { // this keeps the test from comparing a card with itself
+				assert(i == j); 
+			}
+			else {
+				if ((pstack->at(i).rank == pstack->at(j).rank) && (pstack->at(i).suit == pstack->at(j).suit)) {
+					cout << "Test A Failed" << endl;
+					assert(1 == 0);
+				}
+				else {
+					assert(1 == 1);
+				}
+			}
+		}
+	}
+	cout << "Test A Done" << endl;
+}
+
+void TestB(vector<Deck>* pstack) {
+	Deck testcard; //creates variable of type Deck
+	testcard.rank = pstack->at(0).rank; 
+	testcard.suit = pstack->at(0).suit; //copies the first card's properties to testcard
+	int z = 0;
+	for (int i = 0; i < numofcards; i++) {
+		if ((testcard.rank == pstack->at(i).rank) && (testcard.suit == pstack->at(i).suit)) {
+			z = z + 1; //counts how many times a card like testcard shows up
+		}
+	}
+	if (n == z) { //if the number of times the first card of the deck shows up is the same as the 
+				  //number of decks, then this test is passed.
+		cout << "Test B Done" << endl;
+	}
+	else {
+		assert(1 == 0);
 	}
 }
 
@@ -52,7 +105,7 @@ int main()
 		
 		for (int i = 0; i < 4; i++) { //number of suits
 						
-			for (int j = 1; j < 14; j++) { //number of decks
+			for (int j = 1; j < 14; j++) { //number of ranks
 				
 				Deck card; //creates objects of class Deck named card
 				card.suit = i;
@@ -87,8 +140,22 @@ int main()
 	
 	//Cards Shuffled
 	//////////////////////////////
-	// Print to Text File
+	//Test A
+
+	if (n == 1) {
+		TestA(pstack);
+	}
 	
+	// End of Test A
+	//////////////////////////////
+	//Test B
+
+	TestB(pstack);
+
+	//End Test B
+	//////////////////////////////
+	// Print to Text File
+
 	ofstream cout("HW1.txt");
 	cout << "Position" << "\t" << "Suit" << "\t" << "Rank" << endl;
 	for (int p = 0; p < stack.size(); p++) {
