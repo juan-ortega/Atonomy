@@ -12,17 +12,24 @@
 #include <cmath>
 #include <limits>
 
+using namespace std;
+int n = 5; //number of arms
+
 #define jrand (rand()%90)+11;
 #define orand double((rand()%100)+1)/10;
-
-using namespace std;
-int n = 3; //number of arms
+#define arand rand()%n;
+#define rrand (rand()%11)/10;
 
 class ARM {
 public:
 	int N;
 	double mu;
 	double sigma;
+};
+
+class AGENT {
+public:
+	double value;
 };
 
 //Box Muller taken from Wikipedia
@@ -80,8 +87,8 @@ int main()
 	//END OF MAKING THE ARMS
 	///////////////////////////////////////
 	//MANUAL ARM OUTPUT
-
-	int N = 10000;
+	
+	/*int N = 10000;
 	cout << "Pick an Arm ";
 	
 	while (N != -1) {
@@ -94,21 +101,44 @@ int main()
 		else {
 			N = -1;
 		}
-	}
+	}*/
 
 	//END OF MANUAL ARM OUTPUT
 	////////////////////////////////////////
 	//AGENT CHOOSING
-
-	vector<double> decisionvalue;
-	int mistic = 0; //Value for optimistic or pesimistic
+	
+	vector<AGENT> agentvalues;
+	
+	double mistic = 0; //Value for optimistic or pessimistic
+	
 	for (int i = 0; i < n; i++) {
-		decisionvalue.push_back(mistic);
-	}
-	for (int i = 0; i < n; i++) {
-		cout >> decisionvalue.at(i) >> endl;
+		AGENT agent;
+		agent.value = mistic;
+		agentvalues.push_back(agent);
 	}
 
+	double epsilon = 1.1;
+	double alpha = .25;
+	int cycles = 10000; // number of learning cycles the agent has to find the best arm
+	
+	for (int i = 0; i < cycles; i++) {
+		double E = rrand;
+		if (E >= epsilon) {
+
+		}
+		else {
+			int randchoice = arand;
+			double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
+			agentvalues.at(randchoice).value = randout*alpha - agentvalues.at(randchoice).value*(1 - alpha);
+		}
+	}
+
+	//vt(a)=RaAL+vt-1(1-AL)
+
+	for (int i = 0; i < n; i++) {
+		cout << agentvalues.at(i).value << endl;
+	}
+	
 
 	//END OF AGENT CHOOSING
 	////////////////////////////////////////
