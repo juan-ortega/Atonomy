@@ -13,10 +13,10 @@
 #include <limits>
 
 using namespace std;
-int n = 3; //number of arms
+int n = 5; //number of arms
 
 #define jrand (rand()%90)+11;
-#define orand double((rand()%10)+1)/10;
+#define orand double((rand()%100)+1)/10;
 #define arand rand()%n;
 #define rrand double(rand()%100)/100;
 
@@ -167,7 +167,7 @@ while (M != 3) {
 
 		double epsilon = .1; // percentage of pulls that will be random
 		double alpha = .75; // weight of new arm value
-		int cycles = 500000; // number of learning cycles the agent has to find the best arm
+		int cycles = 10000; // number of learning cycles the agent has to find the best arm
 		int ipulls = 5; // initial pulls to set up variance in values
 
 		for (int i = 0; i < n; i++) { //pulls each arm ipull times before starting the epsilon-greedy algorythm
@@ -207,6 +207,13 @@ while (M != 3) {
 			}
 		///////////////End of Setting up Testing Parameters
 
+			//setting up export 
+			//ofstream cout("PA.txt");
+			//cout << "Reward" << endl;
+			//cout << "Value" << endl;
+
+			double outvalue = 0;
+
 			for (int i = 0; i < cycles; i++) {
 				double E = rrand;
 				int greedychoice = 0;
@@ -223,17 +230,23 @@ while (M != 3) {
 					}
 					double greedyout = armoutput(armvalues.at(greedychoice).mu, armvalues.at(greedychoice).sigma);
 					agentvalues.at(greedychoice).value = greedyout*alpha + agentvalues.at(greedychoice).value*(1 - alpha);
+					outvalue = greedyout;
 					//cout << "greedy" << "\t" << greedychoice << endl;
 				}
 				else {
 					int randchoice = arand;
 					double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
 					agentvalues.at(randchoice).value = randout*alpha + agentvalues.at(randchoice).value*(1 - alpha);
+					outvalue = randout;
 					//cout << "random" << "\t" << randchoice << endl;
 				}
+				//for curve write up
+				//cout << agentvalues.at(0).value << "\t" << agentvalues.at(1).value << "\t" << agentvalues.at(2).value << "\t" << agentvalues.at(3).value << "\t" << agentvalues.at(4).value << endl; //n=3
+				//cout << outvalue << endl; 
 			}
+
 			if ((test == 1) && (c == 0)) { //decides if the tests were successful and communicates it
-				if (agentvalues.at(0).value > 110) {
+				if (agentvalues.at(0).value > 150) {
 					cout << "Test B Passed" << endl;
 					cout << "Agent values after Test B" << endl;
 					for (int i = 0; i < n; i++) {
@@ -275,10 +288,17 @@ while (M != 3) {
 		M = 0;
 	}
 }
+
 	//END OF AGENT CHOOSING
 	////////////////////////////////////////
+/*int mu = 100;
+int sigma = 10;
 
-
+ofstream cout("PAtest.txt");
+for (int i = 0; i < 500; i++) {
+	double out = armoutput(mu, sigma);
+	cout << out << endl;
+}*/
 
 	int a = 0;
 	int j = 0;
