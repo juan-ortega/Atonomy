@@ -13,12 +13,12 @@
 #include <limits>
 
 using namespace std;
-int n = 5; //number of arms
+int n = 3; //number of arms
 
 #define jrand (rand()%90)+11;
 #define orand double((rand()%100)+1)/10;
 #define arand rand()%n;
-#define rrand (rand()%11)/10;
+#define rrand (rand()%10)/10;
 
 class ARM {
 public:
@@ -88,58 +88,86 @@ int main()
 	///////////////////////////////////////
 	//MANUAL ARM OUTPUT
 	
-	/*int N = 10000;
-	cout << "Pick an Arm ";
 	
-	while (N != -1) {
-		cin >> N;
-		if (N != 0) {
-			N = N - 1;
+int M = 0;
+while (M != 3) {
+	cout << "Enter (1) for Manual play or (2) Agent Play" << endl;
+	cin >> M;
+	if (M == 1) {
 
-			cout << armoutput(armvalues.at(N).mu, armvalues.at(N).sigma) << endl;
+		int N = 10000;
+		cout << "Pick an Arm ";
+
+		while (N != -1) {
+			cin >> N;
+			if (N != 0) {
+				N = N - 1;
+
+				cout << armoutput(armvalues.at(N).mu, armvalues.at(N).sigma) << endl;
+			}
+			else {
+				N = -1;
+			}
 		}
-		else {
-			N = -1;
-		}
-	}*/
+		M = 3;
+	}
 
 	//END OF MANUAL ARM OUTPUT
 	////////////////////////////////////////
 	//AGENT CHOOSING
-	
-	vector<AGENT> agentvalues;
-	
-	double mistic = 0; //Value for optimistic or pessimistic
-	
-	for (int i = 0; i < n; i++) {
-		AGENT agent;
-		agent.value = mistic;
-		agentvalues.push_back(agent);
-	}
+	else if (M == 2) {
+		vector<AGENT> agentvalues;
 
-	double epsilon = 1.1;
-	double alpha = .25;
-	int cycles = 10000; // number of learning cycles the agent has to find the best arm
-	
-	for (int i = 0; i < cycles; i++) {
-		double E = rrand;
-		if (E >= epsilon) {
+		double mistic = 0; //Value for optimistic or pessimistic
 
+		for (int i = 0; i < n; i++) {
+			AGENT agent;
+			agent.value = mistic;
+			agentvalues.push_back(agent);
 		}
-		else {
-			int randchoice = arand;
-			double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
-			agentvalues.at(randchoice).value = randout*alpha - agentvalues.at(randchoice).value*(1 - alpha);
+
+		double epsilon = 1; // percentage of pulls that will be random
+		double alpha = .9; // weight of new arm value
+		int cycles = 50000; // number of learning cycles the agent has to find the best arm
+		int ipulls = 5; // initial pulls to set up variance in values
+
+		for (int i = 0; i < n; i++) { //pulls each arm ipull times before starting the epsilon-greedy algorythm
+			for (int j = 0; j < ipulls; j++) {
+				double initialout = armoutput(armvalues.at(i).mu, armvalues.at(i).sigma);
+				agentvalues.at(i).value = initialout*alpha - agentvalues.at(i).value*(1 - alpha);
+			}
 		}
+
+		cout << "Agent values after initial pulls" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << agentvalues.at(i).value << endl;
+		}
+
+		for (int i = 0; i < cycles; i++) {
+			double E = rrand;
+			if (E > epsilon) {
+
+			}
+			else {
+				int randchoice = arand;
+				double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
+				agentvalues.at(randchoice).value = randout*alpha - agentvalues.at(randchoice).value*(1 - alpha);
+			}
+		}
+
+		//vt(a)=RaAL+vt-1(1-AL)
+		cout << "Agent values after agent pulls" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << agentvalues.at(i).value << endl;
+		}
+		M = 3;
 	}
 
-	//vt(a)=RaAL+vt-1(1-AL)
-
-	for (int i = 0; i < n; i++) {
-		cout << agentvalues.at(i).value << endl;
+	else {
+		cout << "ENTER 1 OR 2" << endl;
+		M = 0;
 	}
-	
-
+}
 	//END OF AGENT CHOOSING
 	////////////////////////////////////////
 
