@@ -13,12 +13,12 @@
 #include <limits>
 
 using namespace std;
-int n = 3; //number of arms
+int n = 1; //number of arms
 
 #define jrand (rand()%90)+11;
-#define orand double((rand()%100)+1)/10;
+#define orand double((rand()%10)+1)/10;
 #define arand rand()%n;
-#define rrand (rand()%10)/10;
+#define rrand double(rand()%100)/100;
 
 class ARM {
 public:
@@ -96,14 +96,31 @@ while (M != 3) {
 	if (M == 1) {
 
 		int N = 10000;
+		double mvalue = 0;
+		double alpha = .25;
 		cout << "Pick an Arm ";
+
+		vector<AGENT> agentvalues;
+
+		double mistic = 0; //Value for optimistic or pessimistic
+
+		for (int i = 0; i < n; i++) {
+			AGENT agent;
+			agent.value = mistic;
+			agentvalues.push_back(agent);
+		}
 
 		while (N != -1) {
 			cin >> N;
 			if (N != 0) {
 				N = N - 1;
-
-				cout << armoutput(armvalues.at(N).mu, armvalues.at(N).sigma) << endl;
+				double reward = armoutput(armvalues.at(N).mu, armvalues.at(N).sigma);
+				agentvalues.at(N).value = reward*alpha + agentvalues.at(N).value*(1 - alpha);
+				cout << reward << endl;
+				
+				for (int o = 0; o < n; o++) {
+					cout << agentvalues.at(o).value << "\t";
+				}
 			}
 			else {
 				N = -1;
@@ -126,9 +143,9 @@ while (M != 3) {
 			agentvalues.push_back(agent);
 		}
 
-		double epsilon = 1; // percentage of pulls that will be random
-		double alpha = .9; // weight of new arm value
-		int cycles = 50000; // number of learning cycles the agent has to find the best arm
+		double epsilon = .1; // percentage of pulls that will be random
+		double alpha = .5; // weight of new arm value
+		int cycles = 500000; // number of learning cycles the agent has to find the best arm
 		int ipulls = 5; // initial pulls to set up variance in values
 
 		for (int i = 0; i < n; i++) { //pulls each arm ipull times before starting the epsilon-greedy algorythm
@@ -145,13 +162,27 @@ while (M != 3) {
 
 		for (int i = 0; i < cycles; i++) {
 			double E = rrand;
-			if (E > epsilon) {
-
+			int greedychoice = 0;
+			if (E >= epsilon) {
+				double tempvalue=agentvalues.at(0).value;
+				for (int k = 0; k < n; k++) {
+					if (tempvalue <= agentvalues.at(k).value) {
+						tempvalue = agentvalues.at(k).value;
+						greedychoice = k;
+					}
+					else {
+						assert(0 == 0);
+					}
+				}
+				double greedyout = armoutput(armvalues.at(greedychoice).mu, armvalues.at(greedychoice).sigma);
+				agentvalues.at(greedychoice).value = greedyout*alpha + agentvalues.at(greedychoice).value*(1 - alpha);
+				//cout << "greedy" << "\t" << greedychoice << endl;
 			}
 			else {
 				int randchoice = arand;
 				double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
 				agentvalues.at(randchoice).value = randout*alpha - agentvalues.at(randchoice).value*(1 - alpha);
+				//cout << "random" << "\t" << randchoice << endl;
 			}
 		}
 
@@ -172,17 +203,6 @@ while (M != 3) {
 	////////////////////////////////////////
 
 
-
-	/*
-	int mu = 100;
-	int sigma = 10;
-		
-	//ofstream cout("PA.txt");
-	for (int i = 0; i < 50; i++) {
-		double out = armoutput(mu, sigma);
-		cout << out << endl;
-	}
-	*/
 
 	int a = 0;
 	int j = 0;
