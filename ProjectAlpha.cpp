@@ -13,7 +13,7 @@
 #include <limits>
 
 using namespace std;
-int n = 1; //number of arms
+int n = 3; //number of arms
 
 #define jrand (rand()%90)+11;
 #define orand double((rand()%10)+1)/10;
@@ -59,6 +59,26 @@ double armoutput(double mu, double sigma) {
 	
 }
 
+void TestA(vector<ARM>* parmvalues, vector<AGENT>* pagentvalues) {
+	n = 1;
+	parmvalues->clear();
+	pagentvalues->clear();
+		
+	ARM arm2;
+	arm2.N = 1;
+	arm2.mu = jrand;
+	arm2.sigma = orand;
+	parmvalues->push_back(arm2);
+
+	AGENT agent2;
+	agent2.value = 0;
+	pagentvalues->push_back(agent2);
+}
+
+void TestB(vector<ARM>* parmvalues, vector<AGENT>* pagentvalues) {
+	parmvalues->at(0).mu = 500;
+}
+
 int main()
 {
 	srand(time(NULL));
@@ -67,6 +87,7 @@ int main()
 	//MAKING THE ARMS
 
 	vector<ARM> armvalues;
+	vector<ARM>* parmvalues = &armvalues;
 	
 	for (int i = 0; i < n; i++) {
 		
@@ -134,6 +155,7 @@ while (M != 3) {
 	//AGENT CHOOSING
 	else if (M == 2) {
 		vector<AGENT> agentvalues;
+		vector<AGENT>* pagentvalues = &agentvalues;
 
 		double mistic = 0; //Value for optimistic or pessimistic
 
@@ -144,7 +166,7 @@ while (M != 3) {
 		}
 
 		double epsilon = .1; // percentage of pulls that will be random
-		double alpha = .5; // weight of new arm value
+		double alpha = .75; // weight of new arm value
 		int cycles = 500000; // number of learning cycles the agent has to find the best arm
 		int ipulls = 5; // initial pulls to set up variance in values
 
@@ -160,34 +182,88 @@ while (M != 3) {
 			cout << agentvalues.at(i).value << endl;
 		}
 
-		for (int i = 0; i < cycles; i++) {
-			double E = rrand;
-			int greedychoice = 0;
-			if (E >= epsilon) {
-				double tempvalue=agentvalues.at(0).value;
-				for (int k = 0; k < n; k++) {
-					if (tempvalue <= agentvalues.at(k).value) {
-						tempvalue = agentvalues.at(k).value;
-						greedychoice = k;
+		///////////////Testing
+		int test = 0;
+		cout << "Do you want to perform the Tests?" << endl << "Yes(1) or NO(2)" << endl;
+		cin >> test;
+		int mighttest = 3;
+		int testlimit = 3;
+		if (test == 1) {
+			mighttest = 0;
+			testlimit = 2;
+		}
+		else {
+			mighttest = 2;
+		}
+
+		for (int c = mighttest; c < testlimit; c++) {
+			if (c==0) {
+				TestB(parmvalues,pagentvalues); //sets up one arm with a random mu and sigma value
+
+			}
+			else if (c == 1) {
+				TestA(parmvalues,pagentvalues); //sets up n amount of arms with one being way higher than the rest
+				cout << armvalues.size() << "\t" << agentvalues.size() << endl; //checks sizes to see if Test A parameters where set
+			}
+		///////////////End of Setting up Testing Parameters
+
+			for (int i = 0; i < cycles; i++) {
+				double E = rrand;
+				int greedychoice = 0;
+				if (E >= epsilon) {
+					double tempvalue = agentvalues.at(0).value;
+					for (int k = 0; k < n; k++) {
+						if (tempvalue <= agentvalues.at(k).value) {
+							tempvalue = agentvalues.at(k).value;
+							greedychoice = k;
+						}
+						else {
+							assert(0 == 0);
+						}
 					}
-					else {
-						assert(0 == 0);
+					double greedyout = armoutput(armvalues.at(greedychoice).mu, armvalues.at(greedychoice).sigma);
+					agentvalues.at(greedychoice).value = greedyout*alpha + agentvalues.at(greedychoice).value*(1 - alpha);
+					//cout << "greedy" << "\t" << greedychoice << endl;
+				}
+				else {
+					int randchoice = arand;
+					double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
+					agentvalues.at(randchoice).value = randout*alpha + agentvalues.at(randchoice).value*(1 - alpha);
+					//cout << "random" << "\t" << randchoice << endl;
+				}
+			}
+			if ((test == 1) && (c == 0)) { //decides if the tests were successful and communicates it
+				if (agentvalues.at(0).value > 110) {
+					cout << "Test B Passed" << endl;
+					cout << "Agent values after Test B" << endl;
+					for (int i = 0; i < n; i++) {
+						cout << agentvalues.at(i).value << endl;
 					}
 				}
-				double greedyout = armoutput(armvalues.at(greedychoice).mu, armvalues.at(greedychoice).sigma);
-				agentvalues.at(greedychoice).value = greedyout*alpha + agentvalues.at(greedychoice).value*(1 - alpha);
-				//cout << "greedy" << "\t" << greedychoice << endl;
+				else {
+					cout << "Test B Failed" << endl;
+					assert(0 == 1);
+				}
 			}
-			else {
-				int randchoice = arand;
-				double randout = armoutput(armvalues.at(randchoice).mu, armvalues.at(randchoice).sigma); //normal distribution output from random arm
-				agentvalues.at(randchoice).value = randout*alpha - agentvalues.at(randchoice).value*(1 - alpha);
-				//cout << "random" << "\t" << randchoice << endl;
+			else if ((test == 1) && (c == 1)) {
+				if (abs(armvalues.at(0).mu - agentvalues.at(0).value) < (armvalues.at(0).sigma)) {
+					cout << "Test A Passed" << endl;
+					cout << "Test A mean of the arm" << endl << armvalues.at(0).mu << "\t" << armvalues.at(0).sigma << endl;
+				}
+				else {
+					cout << "Test A Failed" << endl;
+					assert(0 == 1);
+				}
 			}
 		}
 
 		//vt(a)=RaAL+vt-1(1-AL)
-		cout << "Agent values after agent pulls" << endl;
+		if (test == 1) {
+			cout << "Agent values after Test A" << endl;
+		}
+		else {
+			cout << "Agent values after agent pulls" << endl;
+		}
 		for (int i = 0; i < n; i++) {
 			cout << agentvalues.at(i).value << endl;
 		}
