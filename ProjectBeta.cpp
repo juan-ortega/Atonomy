@@ -57,13 +57,6 @@ void setup(vector<agent>* pgrid, vector<values>* pprizes, int i, int j, int p, i
 
 int coord(int xcoord, int ycoord) {
 	int z = 0;
-	if (xcoord < 0) {
-		return -1;
-	}
-	else if (ycoord < 0) {
-		return -1;
-	}
-
 	for (int i = 0; i < x; i++) {
 		for (int j = 0; j < y; j++) {
 			if ((i == xcoord) && (j == ycoord)) {
@@ -74,7 +67,6 @@ int coord(int xcoord, int ycoord) {
 			}
 		}
 	}
-	return (x*y);
 }
 
 int ipos(int index) {
@@ -150,12 +142,25 @@ int main()
 //END OF SET UP
 ////////////////////////////////////////////////
 //Q-LEARNING AGENT 
-	int cycles = 1000;
+	int cycles = 30;
 	int agentcoord = coord(xposition, yposition);
+	int prizecoord = coord(xprize, yprize);
+	int stepstaken = 0;
+
 	for (int m = 0; m < cycles; m++) {
-		
-		//value(
-		//learn(
+		while (agentcoord != prizecoord) {
+
+
+
+			//CHOOSING A MOVE
+
+			//LARN FROM MOVE
+
+
+
+			stepstaken = stepstaken + 1;
+		}
+		cout << stepstaken << endl;
 	}
 
 //END OF Q-LEARNING AGENT
@@ -174,4 +179,3 @@ int main()
 	return 0;
 	return 0;
 }
-
