@@ -9,18 +9,22 @@
 #include <vector>
 #include <fstream>
 
-int numcities = 10; // Number of cities
-int startpolinum = 80; // Number of policies being tested
+///////////////// HR_3
+///////////////// HR_4
+int numcities = 25; // Number of cities
+int startpolinum = numcities * 10; // Number of policies being tested
+int generations = 300;
 
 #define jrand double(rand()%9901)/100;  //random number to assign position to a city
-#define arand int(rand()%(numcities-1))+1; //random number that ensures the first city stays the same.
+#define arand int(rand()%(numcities-1))+1; ///////////////// LR_5
+										   //random number that ensures the first city stays the same.
                                            //i.e. zero is not given
 #define orand int(rand()%startpolinum);
 #define rrand int(rand()%(startpolinum*2));
 
 using namespace std;
 
-class city {
+class city {  ///////////////// LR_1
 public:
 	double xpos;
 	double ypos;
@@ -28,7 +32,7 @@ public:
 };
 
 
-void init_mutate(vector<city>* pcities, int modifytype) {
+void init_mutate(vector<city>* pcities, int modifytype) { ///////////////// LR_6
 	city citytemp;
 	int n;
 
@@ -36,7 +40,7 @@ void init_mutate(vector<city>* pcities, int modifytype) {
 		n = numcities;
 	}
 	if (modifytype = 1) {
-		n = floor(numcities / 8);
+		n = 1;
 	}
 
 	for (int i = 0; i < n; i++) {
@@ -57,13 +61,13 @@ void init_mutate(vector<city>* pcities, int modifytype) {
 	}
 }
 
-double fitdis(vector<city> temppolicy) {
+double fitdis(vector<city> temppolicy) { ///////////////// MR_2
 	double tempfit = 0;
 	double distance = 0;;
 	for (int i = 0; i < (numcities - 1); i++) {
 		distance = sqrt((temppolicy.at(i + 1).xpos - temppolicy.at(i).xpos)*(temppolicy.at(i + 1).xpos - temppolicy.at(i).xpos)
 			+ (temppolicy.at(i + 1).ypos - temppolicy.at(i).ypos)*(temppolicy.at(i + 1).ypos - temppolicy.at(i).ypos));
-		tempfit = tempfit + distance;
+		tempfit = tempfit + distance; ///////////////// LR_7
 	}
 	return tempfit;
 }
@@ -85,10 +89,10 @@ int main()
 {
 	srand(time(NULL));
 	
-	vector<city> cities; // Policy followed by the agent, gives the order to visit the cities.
+	vector<city> cities; ///////////////// LR_3
 	vector<city>* pcities = &cities;
 	city cityloc;
-	vector<vector<city>> policies; //Vector that houses all the tested policies for the agent to follow.
+	vector<vector<city>> policies; ///////////////// LR_2
 	
 	int modifytype; //If 0 modify for initialization, if 1 modify to mutate. 
 
@@ -96,11 +100,20 @@ int main()
 	//MAKING THE CITIES
 	
 	for (int i = 0; i < numcities; i++) {
-		cityloc.xpos = jrand;
-		cityloc.ypos = jrand;
+		cityloc.xpos = i;
+		cityloc.ypos = 0;
 		cityloc.initloc = i + 1;
 		cities.push_back(cityloc);
 	}
+	
+	/*
+	for (int i = 0; i < numcities; i++) { 
+	cityloc.xpos = jrand;
+	cityloc.ypos = jrand;
+	cityloc.initloc = i + 1;
+	cities.push_back(cityloc);
+	}
+	*/
 	
 	/*
 	for (int i = 0; i < numcities; i++) {
@@ -110,9 +123,10 @@ int main()
 
 	////////////////////////////////////////////////////////
 	//INITIALIZE
+	///////////////// MR_1
 
 	modifytype = 0;
-
+	///////////////// HR_2
 	for (int i = 0; i < startpolinum; i++) {
 		init_mutate(pcities, modifytype);
 		policies.push_back(cities);
@@ -129,6 +143,7 @@ int main()
 
 	////////////////////////////////////////////////////////
 	//REPLICATE
+	///////////////// MR_5
 
 	modifytype = 1;
 	vector<city> temppolicy;
@@ -136,7 +151,9 @@ int main()
 	vector<double> fitness;
 	vector<vector<city>> temppolicies;
 
-	for (int k = 0; k < startpolinum*numcities; k++) {
+	ofstream cout("PG.txt");
+
+	for (int k = 0; k < generations; k++) {
 		
 		temppolicy.clear();
 		temppolicies.clear();
@@ -146,7 +163,7 @@ int main()
 			int o = orand;
 			temppolicy = policies.at(i);
 
-			init_mutate(ptemppolicy, modifytype);
+			init_mutate(ptemppolicy, modifytype); ///////////////// LR_4
 			policies.push_back(temppolicy);
 		}
 
@@ -155,10 +172,10 @@ int main()
 
 		double tempfit;
 
-		for (int i = 0; i < policies.size(); i++) {
+		for (int i = 0; i < policies.size(); i++) { ///////////////// LR_8
 			temppolicy = policies.at(i);
 			tempfit = fitdis(temppolicy);
-			fitness.push_back(tempfit);
+			fitness.push_back(tempfit); ///////////////// MR_3
 		}
 
 		/*
@@ -169,6 +186,7 @@ int main()
 
 		////////////////////////////////////////////////////////
 		//DOWN SELECT
+		///////////////// MR_4
 
 		int ds = 0;
 
@@ -182,6 +200,11 @@ int main()
 		policies = temppolicies;
 
 		assert(policies.size() == startpolinum);
+
+		for (int i = 0; i < policies.size(); i++) {
+			cout << fitness.at(i) << "\t";
+		}
+		cout << endl;
 	}
 
 	double tempfit;
@@ -190,9 +213,13 @@ int main()
 		tempfit = fitdis(temppolicy);
 		fitness.push_back(tempfit);
 	}
+	///////////////// HR_1
+	
+	/*
 	for (int i = 0; i < policies.size(); i++) {
 		cout << fitness.at(i) << endl;
 	}
+	*/
 
 	int j;
 	cin >> j;
