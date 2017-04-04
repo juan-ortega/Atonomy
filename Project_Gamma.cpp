@@ -11,7 +11,7 @@
 
 ///////////////// HR_3
 ///////////////// HR_4
-int numcities = 25; // Number of cities
+int numcities = 10; // Number of cities
 int startpolinum = numcities * 10; // Number of policies being tested
 int generations = 300;
 
@@ -32,7 +32,11 @@ public:
 };
 
 
-void init_mutate(vector<city>* pcities, int modifytype) { ///////////////// LR_6
+void init_mutate(vector<city>* pcities, int modifytype) { 
+	///////////////// LR_4
+	//This function uses the same mechanism as the shuffling function in 
+	//HW 1.
+
 	city citytemp;
 	int n;
 
@@ -67,8 +71,22 @@ double fitdis(vector<city> temppolicy) { ///////////////// MR_2
 	for (int i = 0; i < (numcities - 1); i++) {
 		distance = sqrt((temppolicy.at(i + 1).xpos - temppolicy.at(i).xpos)*(temppolicy.at(i + 1).xpos - temppolicy.at(i).xpos)
 			+ (temppolicy.at(i + 1).ypos - temppolicy.at(i).ypos)*(temppolicy.at(i + 1).ypos - temppolicy.at(i).ypos));
-		tempfit = tempfit + distance; ///////////////// LR_7
+		///////////////// LR_7
+		assert(distance < sqrt(100 * 100 * 2));
+		//This ensures the equation results within the parameters
+
+		tempfit = tempfit + distance; 
+		///////////////// LR_7
+		assert(tempfit >= distance);
+		//Checks that the distance calculated always increases as the agent travels.
 	}
+
+	///////////////// MR_2
+	assert(tempfit >= numcities - 1);
+	assert(tempfit < numcities*sqrt(100 * 100 * 2));
+	//This checks that the total distance between all visited cities
+	//is within the possible range
+
 	return tempfit;
 }
 
@@ -105,7 +123,9 @@ int main()
 		cityloc.initloc = i + 1;
 		cities.push_back(cityloc);
 	}
-	
+	///////////////// HR_2
+	assert(fitdis(cities) == numcities - 1); //This checks that the fitness the same as the manually calculated one.
+
 	/*
 	for (int i = 0; i < numcities; i++) { 
 	cityloc.xpos = jrand;
@@ -121,16 +141,21 @@ int main()
 	}
 	*/
 
+	assert(cities.size() == numcities);///////////////// HR_3
+									   ///////////////// HR_4
+	//This function checks that the number of cities assigned is what it was signifies
+
 	////////////////////////////////////////////////////////
 	//INITIALIZE
-	///////////////// MR_1
 
 	modifytype = 0;
-	///////////////// HR_2
 	for (int i = 0; i < startpolinum; i++) {
 		init_mutate(pcities, modifytype);
 		policies.push_back(cities);
 	}
+
+	///////////////// MR_1
+	assert(policies.size() == startpolinum);
 
 	/*
 	for (int i = 0; i < startpoli; i++) {
@@ -143,7 +168,6 @@ int main()
 
 	////////////////////////////////////////////////////////
 	//REPLICATE
-	///////////////// MR_5
 
 	modifytype = 1;
 	vector<city> temppolicy;
@@ -153,30 +177,53 @@ int main()
 
 	ofstream cout("PG.txt");
 
+
 	for (int k = 0; k < generations; k++) {
 		
 		temppolicy.clear();
 		temppolicies.clear();
 		fitness.clear();
 
+		///////////////// MR_5
+		assert(policies.size() == startpolinum);
+		//Checks that the number of policies are equal to the number of starting
+		//policies.
+
 		for (int i = 0; i < startpolinum; i++) {
 			int o = orand;
 			temppolicy = policies.at(i);
 
-			init_mutate(ptemppolicy, modifytype); ///////////////// LR_4
+			init_mutate(ptemppolicy, modifytype); 
 			policies.push_back(temppolicy);
 		}
+
+		///////////////// LR_4
+		//cout << fitdis(policies.at(0)) <<"---------------" <<fitdis(policies.at(startpolinum)) << endl;
+		//assert(fitdis(policies.at(0)) == fitdis(policies.at(startpolinum)));
+		//This uses the fitdis function to check that a mutation was
+		//actually done. If the total distance traveled by following
+		//the policy changes so did the policy itself. Sometimes, by chance
+		//nothting chances that is why i have commented this part.
+
+		///////////////// MR_5
+		assert(policies.size() == startpolinum * 2);
+		//Checks that number of policies are double the number of starting
+		//policies due to the replication and mutation step.
 
 		////////////////////////////////////////////////////////
 		//EVALUATE
 
 		double tempfit;
 
-		for (int i = 0; i < policies.size(); i++) { ///////////////// LR_8
+		for (int i = 0; i < policies.size(); i++) { 
 			temppolicy = policies.at(i);
 			tempfit = fitdis(temppolicy);
 			fitness.push_back(tempfit); ///////////////// MR_3
 		}
+		
+		///////////////// MR_3
+		assert(fitness.size() == policies.size());
+		//Makes sure each policy has a fitness attached to it
 
 		/*
 		for (int i = 0; i < policies.size(); i++) {
@@ -186,11 +233,13 @@ int main()
 
 		////////////////////////////////////////////////////////
 		//DOWN SELECT
-		///////////////// MR_4
 
 		int ds = 0;
 
-		assert(policies.size() == startpolinum * 2);
+		///////////////// MR_4
+		assert(policies.size() == startpolinum * 2); 
+		//Checks that number of policies are double the number of starting
+		//policies due to the replication and mutation step.
 
 		for (int i = 0; i < startpolinum; i++) {
 			ds = downselect(fitness); //Binary Tournament
@@ -199,7 +248,10 @@ int main()
 		
 		policies = temppolicies;
 
+		///////////////// MR_4
 		assert(policies.size() == startpolinum);
+		//checks that the number of policies goes back to the starting 
+		//number, proving the down select
 
 		for (int i = 0; i < policies.size(); i++) {
 			cout << fitness.at(i) << "\t";
@@ -207,13 +259,33 @@ int main()
 		cout << endl;
 	}
 
+	///////////////// HR_1
+	//HR_1 will be proven in the write up. A way could not be found to use
+	//an assert to prove this checkpoint.
 	double tempfit;
 	for (int i = 0; i < policies.size(); i++) {
 		temppolicy = policies.at(i);
 		tempfit = fitdis(temppolicy);
 		fitness.push_back(tempfit);
 	}
-	///////////////// HR_1
+	
+	///////////////// LR_5
+	for (int j = 0; j < policies.size(); j++) {
+		assert(policies.at(j).at(0).initloc == 1);
+
+	}
+	//Checks the final policies to see if the starting city is the same
+	//for all policies
+
+	///////////////// LR_6
+	for (int j = 0; j < policies.size(); j++) {
+		for (int p = 0; p < numcities - 1; p++) {
+			assert(policies.at(j).at(p).initloc != policies.at(j).at(p + 1).initloc);
+		}
+	}
+	//This ensures that no city was visited twice using the initial location 
+	//attribute given to it in the begining, which also works as an identifier.
+	
 	
 	/*
 	for (int i = 0; i < policies.size(); i++) {
